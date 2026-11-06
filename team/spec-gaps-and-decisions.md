@@ -1,8 +1,8 @@
 # Spec Gaps and Decisions — Manager Library
-
+ 
 While reading the spec for the Laravel/React translation we found points the spec does not settle. Each one is recorded with the
 decision taken and why, so the choices are traceable (SDD: when the spec is silent, decide explicitly and write it down).
-
+ 
 | # | Gap | Decision | Reason |
 |---|---|---|---|
 | 1 | Plan D-04 / ADR-002 call for a "version token per book", but `data-model.md` §3 has no version column. Article X says the data model wins. | Use a **conditional update inside a transaction** (`UPDATE books SET available_copies = available_copies - 1 WHERE id = ? AND available_copies > 0`) plus the range `CHECK`. If 0 rows change, return 409 `BOOK_NOT_AVAILABLE`. | Satisfies NFR-2 (last copy: one 201, one 409) without changing the data model. Same optimistic spirit as ADR-002. |
@@ -20,11 +20,18 @@ decision taken and why, so the choices are traceable (SDD: when the spec is sile
 | 13 | PHP does not populate `$_FILES` for multipart `PUT` before PHP 8.4, but the contract uses `PUT /books/{id}/cover`. | Accept `PUT` (PHP 8.4+ uses `request_parse_body`) and also `POST` on the same path. | Clients on older PHP can still upload covers. |
 | 14 | A loan request can include a book id that does not exist. | 404 `NOT_FOUND` with the field `items[i].book_id` in `details`. | Distinguishes a missing book from a validation error. |
 | 15 | The contract's response shapes omit some useful ids. | Loan lines include `loan_id` and loans include `loaned_by_user_id` (extra fields). | Additive; does not break the contract. |
-
+| 16 | Article XI asks for documentation in Spanish; the team works and documents in English. | Team documentation (`team/`) is in English; user-facing API messages stay in Spanish as the contract requires; code, columns and routes are in English. | The exam instructions ask for English work; the contract keeps Spanish messages for end users. Recorded as a conscious deviation from Article XI. |
+| 17 | The spec says "ISBN has 13 digits" but does not ask for a check-digit validation. | Validate only 13 digits (`^\d{13}$`); the check digit is not verified. | Follows the spec literally; adding a rule the spec does not state would be inventing scope. |
+| 18 | `PUT /books/{id}` replaces title, author, category and total; it does not list the ISBN. | The ISBN is immutable after creation. | The contract lists the replaceable fields explicitly; it also keeps frozen loan values consistent with the catalog. |
+| 19 | CA-10.1 says "one row per book and frozen category name", but the grouping is by `book_id + book_title + category_name`, and ADR-004 only mentions a category change. | A book renamed inside the reported range appears in **two rows** (old title, new title), like a category change does. | Same principle as ADR-004: the report shows the frozen values and never picks a winner. |
+| 20 | "Maximum 2 MB" for covers does not say if MB means 1,000,000 or 1,048,576 bytes. | 2 x 1024 x 1024 bytes (2,097,152). | Common binary reading; a 3 MB file is rejected either way (the evidence in `tasks.md`). |
+| 21 | Plan D-07 lists a `DocumentNumber` value object, but T-03 only asks for `Isbn`, `Quantity` and `DateRange`. | `DocumentNumber` is not implemented as an object; the document is trimmed and required in `CreateMemberService`, unique in the engine. | `tasks.md` defines the evidence; the uniqueness rule that matters is enforced by the database. |
+ 
 ## Translation notes (Python/.NET -> Laravel/React)
-
+ 
 - `FastAPI`/SQLAlchemy/Alembic -> Laravel routes/controllers, Eloquent or query builder, Laravel migrations.
 - JWT HS256 with 8-hour validity is kept; implemented with a Laravel-compatible JWT or token approach, key from `JWT_SECRET`.
 - Password hashing: Argon2id (Laravel supports `argon2id` in `config/hashing.php`).
 - `pytest` -> PHPUnit/Pest; `import-linter` architecture tests -> a PHP architecture test (e.g. Pest arch tests) if time allows (T-19, Could).
 - Error messages shown to users stay in **Spanish** as the API contract requires; code, columns and routes are in English.
+ 
