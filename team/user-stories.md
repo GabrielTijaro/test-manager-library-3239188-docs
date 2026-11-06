@@ -7,7 +7,7 @@ Priority comes from `moscow.md`.
 | Story | As a... | I want to... | So that... | Priority |
 |---|---|---|---|---|
 | HU-01 | user | log in | I operate according to my role | Must |
-| HU-02 | admin | create librarians | staff can register loans | Should |
+| HU-02 | admin | create librarians | staff can register loans | Must |
 | HU-03 | admin | manage books | the catalog is up to date | Must |
 | HU-04 | user | search books | I find what a member asks for | Must |
 | HU-05 | admin/librarian | manage members | I can lend to them | Must |
