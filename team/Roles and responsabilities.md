@@ -9,7 +9,7 @@ Fill in the **Assigned to** column with the team member responsible.
 | Frontend developer | `app` | T-22 | React app: login, catalog, members, lend, return, overdue, report | Gabriel Tijaro Jimenez (@GabrielTijaro) |
 | Infrastructure / DevOps | `infra` | T-20 | Docker Compose, network, volumes, empty PostgreSQL, `.env.example` | Gabriel Tijaro Jimenez (@GabrielTijaro) |
 | Data & tooling | `tool` | T-21 | Demo seeder through the API (>= 40 books, 10 members, 15 loans, 3 overdue) | Gabriel Tijaro Jimenez (@GabrielTijaro) |
-| Static site | `page` | T-23 | Public presentation site, responsive, no API calls | Gabriel Tijaro Jimenez (@tu-usuario) |
+| Static site | `page` | T-23 | Public presentation site, responsive, no API calls | Gabriel Tijaro Jimenez (@GabrielTijaro) |
 | Documentation & QA | `docs` | all | `team/` documents, spec decisions, running each task's evidence, final delivery check | Gabriel Tijaro Jimenez (@GabrielTijaro) |
 ## Cross-cutting responsibilities
 
