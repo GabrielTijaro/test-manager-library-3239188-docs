@@ -12,6 +12,14 @@ decision taken and why, so the choices are traceable (SDD: when the spec is sile
 | 5 | No order is given when several loan rules fail at once. | Order: (1) 422 request shape, including repeated book; (2) 409 member has overdue books; (3) 422 limit of 3; (4) 409 no copies. | Validation before state; member rules before stock; deterministic for contract tests. |
 | 6 | Report `from`/`to` are dates, compared against `loaned_at` (`timestamptz`). | Inclusive on both ends: `loaned_at >= from 00:00 UTC` and `loaned_at < (to + 1 day) 00:00 UTC`. | Makes the end date inclusive without losing loans made late on the last day. |
 | 7 | `ck_book_total_positive` and `ck_user_role` are marked pending until T-18. | Put them in the **first migration** and update `data-model.md` §4 in the same commit. | Article VI: enforce in the database whatever it can enforce; Laravel migrations make it free. |
+| 8 | `data-model.md` uses schema `library`, but Laravel creates its `migrations` table before any migration runs and `infra` starts an empty database. | Use the default `public` schema. `data-model.md` was updated (header, §0 and §10 queries). | Article X: the engine wins, so the document is corrected. |
+| 9 | Plan D-11 asks for JWT HS256 but names no library. | Own `Hs256TokenIssuer` (no extra package): 8 hours, claims `sub`, `role`, `iat`, `exp`. | Fewer dependencies; no personal data in the token. |
+| 10 | The contract only defines `INVALID_CREDENTIALS` for login; it has no code for a missing or invalid token. | Missing, invalid or expired token -> 401 with `code = UNAUTHENTICATED`. | Keeps the single error body (NFR-4). |
+| 11 | No minimum password length is specified. | Librarian passwords need at least 8 characters (422 otherwise). | Reasonable default; never logged or returned (NFR-3). |
+| 12 | `days_late` is not defined for the first hours after the due date. | Whole days elapsed since `due_at` (0 during the first 24 hours). | Deterministic and testable with a fake clock. |
+| 13 | PHP does not populate `$_FILES` for multipart `PUT` before PHP 8.4, but the contract uses `PUT /books/{id}/cover`. | Accept `PUT` (PHP 8.4+ uses `request_parse_body`) and also `POST` on the same path. | Clients on older PHP can still upload covers. |
+| 14 | A loan request can include a book id that does not exist. | 404 `NOT_FOUND` with the field `items[i].book_id` in `details`. | Distinguishes a missing book from a validation error. |
+| 15 | The contract's response shapes omit some useful ids. | Loan lines include `loan_id` and loans include `loaned_by_user_id` (extra fields). | Additive; does not break the contract. |
 
 ## Translation notes (Python/.NET -> Laravel/React)
 
