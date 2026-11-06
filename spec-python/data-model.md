@@ -3,7 +3,7 @@
 **El único sitio donde vive el modelo de datos.** Quien implemente no necesita abrir el código ni conectarse
 al motor para saber qué hay, de qué tipo y con qué regla.
 
-- Motor de referencia: PostgreSQL 16. Esquema `library`. Servidor en UTC.
+- Motor de referencia: PostgreSQL 16. Esquema `public` en el reto Laravel (ver `team/spec-gaps-and-decisions.md`, decisión 8); el spec original usa `library`. Servidor en UTC.
 - Rige bajo [`constitution.md`](constitution.md) y [`spec.md`](spec.md). Si algo contradice a este documento, gana este documento.
 
 Cada regla lleva una de **tres marcas**: **motor** (la impone la base), **solo dominio** (solo el código),
@@ -18,9 +18,9 @@ Cada regla lleva una de **tres marcas**: **motor** (la impone la base), **solo d
 | Tabla | `snake_case`, inglés, **singular** | `loan_item` |
 | Columna | `snake_case`, inglés, singular, ASCII | `due_at` |
 | Restricción escrita a mano | `ck_{tabla}_{regla}` | `ck_book_available_range` |
-| Esquema | `library` | `library.loan` |
+| Esquema | `public` (reto Laravel) | `public.loan` |
 
-`user` se escribe `library."user"` en SQL a mano; el ORM lo entrecomilla solo.
+`user` se escribe `public."user"` (o `"user"`) en SQL a mano; el ORM lo entrecomilla solo.
 
 ## 1. Glosario
 
@@ -131,9 +131,9 @@ porque ningún requisito las pide.
 | `loan_item.loan_id` → `loan.id` CASCADE | FK | **motor** |
 | `loan_item.book_id` → `book.id` RESTRICT | FK | **motor** |
 | `0 <= available_copies <= total_copies` | `ck_book_available_range` | **motor** — última barrera de concurrencia |
-| `total_copies >= 1` | `ck_book_total_positive` | **pendiente (T-18)** · hoy solo dominio |
+| `total_copies >= 1` | `ck_book_total_positive` | **motor** (T-18, en la migración inicial) |
 | Único `(loan_id, book_id)` | índice único | **motor** |
-| `role` en (`admin`,`librarian`) | `ck_user_role` | **pendiente (T-18)** · hoy solo dominio |
+| `role` en (`admin`,`librarian`) | `ck_user_role` | **motor** (T-18, en la migración inicial) |
 | Máximo 3 sin devolver por socio | — | **solo dominio** (no expresable en un `CHECK`) |
 | Socio con vencidos no pide | — | **solo dominio** |
 | Descontar ejemplar y crear línea son una operación | — | **solo dominio** (una transacción) |
@@ -210,15 +210,15 @@ solo puede producirlo el puerto de hash. El sembrador de datos de demostración 
 ```sql
 -- Debe devolver las columnas de §3, sin ningún DEFAULT
 SELECT table_name, ordinal_position, column_name, data_type, is_nullable, column_default
-FROM information_schema.columns WHERE table_schema = 'library' ORDER BY 1, 2;
+FROM information_schema.columns WHERE table_schema = 'public' ORDER BY 1, 2;
 
 -- Restricciones: PK, FK y CHECK
 SELECT c.conrelid::regclass, c.conname, c.contype, pg_get_constraintdef(c.oid)
 FROM pg_constraint c JOIN pg_namespace n ON n.oid = c.connamespace
-WHERE n.nspname = 'library' ORDER BY 1, 3, 2;
+WHERE n.nspname = 'public' ORDER BY 1, 3, 2;
 
 -- Índices
-SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = 'library' ORDER BY 1, 2;
+SELECT tablename, indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY 1, 2;
 ```
 
 Si una regla marcada **motor** no aparece, alguien la borró. Si una marcada **solo dominio** aparece, ya se bajó y hay que reclasificarla.
